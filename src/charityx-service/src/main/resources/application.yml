@@ -1,0 +1,97 @@
+server:
+  servlet:
+    context-path: /${spring.application.name}
+  port: 8080
+  tomcat:
+    max-connections: 1000
+    accept-count: 400
+    threads:
+      max: 400
+spring:
+  application:
+    name: charityx
+  profiles:
+    active: ${PROFILE_ACTIVE:@profile.active@}
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    driverClassName: com.mysql.cj.jdbc.Driver
+    hikari:
+      auto-commit: true
+      connection-test-query: SELECT 1
+      connection-timeout: 30000
+      idle-timeout: 30000
+      max-lifetime: 1800000
+      maximum-pool-size: 50
+      minimum-idle: 1
+      initialization-fail-timeout: -1
+      pool-name: FlyduckHikariCP
+  # OAuth2
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 1073195966926-fqpjuidek5rivgh2heo5cu1psprdsbro.apps.googleusercontent.com
+            client-secret: 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
+            redirect-uri: "{baseUrl}/unAuth/oauth2/callback/{registrationId}"
+            scope:
+              - openid
+              - email
+              - profile
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+            user-name-attribute: sub
+  # Time format processing
+  jackson:
+    time-zone: UTC
+    serialization:
+      WRITE_DATES_AS_TIMESTAMPS: true
+  # Email configuration
+  mail:
+    host: smtp.larksuite.com
+    port: 587
+    username: team@charityx.pro
+    password: ${EMAIL_PASSWORD:@email.password@}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.charity.x.dto.entity
+  configuration:
+    log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-field: 1
+      logic-not-delete-value: 0
+
+jwt:
+  secret: 6525024fd5tecc5344ad0f07c1c53069
+  expiration: 604800
+  header: token
+  exclude-url:
+      - /health**
+      - /swagger-ui/**
+      - /v3/api-docs/**
+      - /swagger-resources/**
+      - /webjars/**
+      - /unAuth/**
+      - /customer/**
+      - /error
+oauth:
+  redirect-url: https://qa-www.charityx.pro
+s3:
+  region: ap-southeast-1
+  bucket: qa-cdn-charityx
+  domain: https://qa-cdn.charityx.pro
+  expiration: 5
+  access-key: ${CHARITY_PAY_S3_KEY:@CHARITY_PAY_S3_KEY@}
+  secret-key: ${CHARITY_PAY_S3_SECRET:@CHARITY_PAY_S3_SECRET@}
+

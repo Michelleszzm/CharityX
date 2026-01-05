@@ -1,0 +1,10 @@
+{
+  "arrowParens": "avoid",
+  "bracketSameLine": false,
+  "printWidth": 80,
+  "trailingComma": "none",
+  "semi": false,
+  "vueIndentScriptAndStyle": true,
+  "singleAttributePerLine": false,
+  "plugins": ["prettier-plugin-tailwindcss"]
+}

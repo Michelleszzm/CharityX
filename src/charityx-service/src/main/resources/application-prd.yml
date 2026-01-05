@@ -1,0 +1,22 @@
+spring:
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/charity_x?useUnicode=true&rewriteBatchedStatements=true&allowMultiQueries=true
+    username: root
+    password: as123123
+    hikari:
+      maximum-pool-size: 4
+  # OAuth2
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 989858908741-tpahotrnva7dp0v526t825vgf99a28a6.apps.googleusercontent.com
+            client-secret: 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
+s3:
+  region: ap-southeast-1
+  bucket: cdn.charityx.pro
+  domain: https://cdn.charityx.pro
+
+oauth:
+  redirect-url: https://www.charityx.pro

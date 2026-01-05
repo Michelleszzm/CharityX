@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google OAuth2 Diagnostic Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button {
+            padding: 10px 20px;
+            background: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #357ae8; }
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        .copy-btn {
+            background: #6c757d;
+            font-size: 12px;
+            padding: 5px 10px;
+        }
+        .copy-btn:hover { background: #5a6268; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Google OAuth2 Diagnostic Tool</h1>
+    
+    <div class="card">
+        <h2>1. Basic Information Check</h2>
+        <div id="basicInfo"></div>
+    </div>
+    
+    <div class="card">
+        <h2>2. Google Identity Services Loading Status</h2>
+        <div id="gisStatus"></div>
+    </div>
+    
+    <div class="card">
+        <h2>3. Configuration Verification</h2>
+        <div id="configCheck"></div>
+        <button onclick="testConfiguration()">Re-test Configuration</button>
+    </div>
+    
+    <div class="card">
+        <h2>4. Google Cloud Console Configuration Guide</h2>
+        <div id="configGuide"></div>
+    </div>
+    
+    <div class="card">
+        <h2>5. Quick Fix Steps</h2>
+        <div id="fixSteps"></div>
+    </div>
+
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    
+    <script>
+        const CLIENT_ID = '989858908741-eqi3l3s0229bp8asri2nnkpasum02l30.apps.googleusercontent.com';
+        const currentOrigin = window.location.origin;
+        const currentUrl = window.location.href;
+        const currentProtocol = window.location.protocol;
+        const currentHost = window.location.host;
+        
+        // 1. Basic information check
+        function checkBasicInfo() {
+            const info = document.getElementById('basicInfo');
+            let html = '<div class="status info">';
+            html += '<strong>Current Access Information:</strong><br>';
+            html += 'Full URL: <code>' + currentUrl + '</code><br>';
+            html += 'Protocol: <code>' + currentProtocol + '</code><br>';
+            html += 'Domain: <code>' + currentOrigin + '</code><br>';
+            html += 'Host: <code>' + currentHost + '</code><br>';
+            html += 'Client ID: <code>' + CLIENT_ID + '</code><br>';
+            html += '</div>';
+            
+            if (currentProtocol === 'file:') {
+                html += '<div class="status error">';
+                html += '❌ Error: Cannot use file:// protocol!<br>';
+                html += 'Please use HTTP server to run this file.';
+                html += '</div>';
+            } else {
+                html += '<div class="status success">';
+                html += '✅ Using HTTP protocol, correct!';
+                html += '</div>';
+            }
+            
+            info.innerHTML = html;
+        }
+        
+        // 2. Check Google Identity Services loading
+        function checkGISStatus() {
+            const status = document.getElementById('gisStatus');
+            let html = '';
+            
+            if (typeof google === 'undefined') {
+                html += '<div class="status warning">';
+                html += '⏳ Google Identity Services is loading...';
+                html += '</div>';
+                
+                // Wait for loading
+                setTimeout(() => {
+                    checkGISStatus();
+                }, 1000);
+            } else if (google.accounts && google.accounts.id) {
+                html += '<div class="status success">';
+                html += '✅ Google Identity Services loaded successfully!';
+                html += '</div>';
+            } else {
+                html += '<div class="status error">';
+                html += '❌ Google Identity Services failed to load!';
+                html += '</div>';
+            }
+            
+            status.innerHTML = html;
+        }
+        
+        // 3. Test configuration
+        function testConfiguration() {
+            const check = document.getElementById('configCheck');
+            check.innerHTML = '<div class="status info">Testing configuration...</div>';
+            
+            if (typeof google === 'undefined' || !google.accounts || !google.accounts.id) {
+                check.innerHTML = '<div class="status error">Google Identity Services not loaded, please refresh page and retry</div>';
+                return;
+            }
+            
+            try {
+                // Try to initialize
+                google.accounts.id.initialize({
+                    client_id: CLIENT_ID,
+                    callback: function(response) {
+                        check.innerHTML = '<div class="status success">✅ Configuration correct! Can be used normally.</div>';
+                    },
+                    auto_select: false
+                });
+                
+                // Check for errors
+                setTimeout(() => {
+                    // Try to render button to trigger verification
+                    const testDiv = document.createElement('div');
+                    testDiv.id = 'test-button';
+                    document.body.appendChild(testDiv);
+                    
+                    try {
+                        google.accounts.id.renderButton(testDiv, {
+                            theme: "outline",
+                            size: "large"
+                        });
+                        
+                        check.innerHTML = '<div class="status success">✅ Configuration verification passed! Button can be rendered normally.</div>';
+                        document.body.removeChild(testDiv);
+                    } catch (e) {
+                        check.innerHTML = '<div class="status error">❌ Configuration verification failed: ' + e.message + '</div>';
+                        if (document.getElementById('test-button')) {
+                            document.body.removeChild(testDiv);
+                        }
+                    }
+                }, 500);
+                
+            } catch (e) {
+                check.innerHTML = '<div class="status error">❌ Configuration test failed: ' + e.message + '</div>';
+            }
+        }
+        
+        // 4. Configuration guide
+        function showConfigGuide() {
+            const guide = document.getElementById('configGuide');
+            let html = '<div class="status warning">';
+            html += '<strong>⚠️ Please configure the following in Google Cloud Console:</strong><br><br>';
+            html += '<strong>1. Visit:</strong><a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a><br>';
+            html += '<strong>2. Select project:</strong>charityx-service<br>';
+            html += '<strong>3. Go to:</strong>APIs & Services → Credentials<br>';
+            html += '<strong>4. Find Client ID:</strong><code>' + CLIENT_ID + '</code><br>';
+            html += '<strong>5. Click edit, add in "Authorized JavaScript origins":</strong><br>';
+            html += '</div>';
+            
+            html += '<div class="status info">';
+            html += '<strong>Domain to add (copy the following content):</strong><br>';
+            html += '<pre id="originToAdd">' + currentOrigin + '</pre>';
+            html += '<button class="copy-btn" onclick="copyToClipboard(\'' + currentOrigin + '\')">Copy Domain</button>';
+            html += '</div>';
+            
+            html += '<div class="status warning">';
+            html += '<strong>Important Notes:</strong><br>';
+            html += '• Only add domain part, do not include path<br>';
+            html += '• Format: <code>http://localhost:8080</code> (correct)<br>';
+            html += '• Wrong: <code>http://localhost:8080/google-oauth-simple.html</code> (includes path)<br>';
+            html += '• Wait 2-5 minutes after saving to take effect';
+            html += '</div>';
+            
+            guide.innerHTML = html;
+        }
+        
+        // 5. Fix steps
+        function showFixSteps() {
+            const steps = document.getElementById('fixSteps');
+            let html = '<ol style="line-height: 2;">';
+            html += '<li>Open <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Google Cloud Console Credentials Page</a></li>';
+            html += '<li>Find Client ID: <code>' + CLIENT_ID.substring(0, 30) + '...</code></li>';
+            html += '<li>Click <strong>Edit</strong> (pencil icon)</li>';
+            html += '<li>In <strong>Authorized JavaScript origins</strong> section, click <strong>+ Add URI</strong></li>';
+            html += '<li>Enter: <code>' + currentOrigin + '</code></li>';
+            html += '<li>Click <strong>Save</strong></li>';
+            html += '<li>Wait 2-5 minutes</li>';
+            html += '<li>Refresh this page and re-test</li>';
+            html += '</ol>';
+            
+            html += '<div class="status info">';
+            html += '<strong>💡 Tip:</strong>If it still doesn\'t work, try adding all possible domains:<br>';
+            html += '<pre>' + currentOrigin + '\nhttp://localhost\nhttp://127.0.0.1:8080\nhttp://127.0.0.1</pre>';
+            html += '</div>';
+            
+            steps.innerHTML = html;
+        }
+        
+        // Copy to clipboard
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Copied to clipboard: ' + text);
+            }).catch(err => {
+                console.error('Copy failed:', err);
+            });
+        }
+        
+        // Execute all checks when page loads
+        window.onload = function() {
+            checkBasicInfo();
+            checkGISStatus();
+            showConfigGuide();
+            showFixSteps();
+            
+            // Auto test after GIS loads
+            setTimeout(() => {
+                if (typeof google !== 'undefined' && google.accounts) {
+                    testConfiguration();
+                }
+            }, 2000);
+        };
+    </script>
+</body>
+</html>
